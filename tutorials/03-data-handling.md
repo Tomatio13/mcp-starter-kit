@@ -143,7 +143,7 @@ import json
 
 app = FastMCP("Task Manager")
 
-@app.tool()
+@app.tool
 def create_task(title: str, description: str = "", priority: int = 1) -> dict:
     """新しいタスクを作成する
     
@@ -182,7 +182,7 @@ def create_task(title: str, description: str = "", priority: int = 1) -> dict:
             "message": "タスクの作成に失敗しました"
         }
 
-@app.tool()
+@app.tool
 def get_tasks(status: str = "all", limit: int = 10) -> dict:
     """タスク一覧を取得する
     
@@ -227,7 +227,7 @@ def get_tasks(status: str = "all", limit: int = 10) -> dict:
             "tasks": []
         }
 
-@app.tool()
+@app.tool
 def update_task_status(task_id: int, status: str) -> dict:
     """タスクのステータスを更新する
     
@@ -281,7 +281,7 @@ def update_task_status(task_id: int, status: str) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def delete_task(task_id: int) -> dict:
     """タスクを削除する
     
@@ -320,7 +320,7 @@ def delete_task(task_id: int) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def search_tasks(keyword: str) -> dict:
     """タスクを検索する
     
@@ -357,7 +357,7 @@ def search_tasks(keyword: str) -> dict:
             "tasks": []
         }
 
-@app.tool()
+@app.tool
 def get_task_statistics() -> dict:
     """タスクの統計情報を取得する
     
@@ -417,8 +417,21 @@ python task_manager.py
 
 ### 基本操作テスト
 
+#### 推奨方法: FastMCP CLIを使用
+```bash
+# 簡単なテスト環境
+fastmcp dev task_manager.py
+
+# またはSSEモードでWeb UIを使用
+fastmcp run task_manager.py --transport sse --port 8000
+# ブラウザで http://localhost:8000 にアクセス
+```
+
+#### 手動テスト（MCP初期化が必要）
+
 **1. タスク作成**
 ```bash
+# 初期化後に実行
 echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "create_task", "arguments": {"title": "FastMCPを学習する", "description": "チュートリアルを全て完了する", "priority": 5}}}' | python task_manager.py
 ```
 
@@ -432,12 +445,14 @@ echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ge
 echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "update_task_status", "arguments": {"task_id": 1, "status": "completed"}}}' | python task_manager.py
 ```
 
+> **重要**: 手動テストはMCPプロトコルの初期化が必要で複雑です。**SSEモードまたはFastMCP CLIの使用を強く推奨します。**
+
 ## 📊 ステップ5: カテゴリ機能を追加
 
 既存のファイルに追加：
 
 ```python
-@app.tool()
+@app.tool
 def create_category(name: str, color: str = "#007bff") -> dict:
     """新しいカテゴリを作成する
     
@@ -477,7 +492,7 @@ def create_category(name: str, color: str = "#007bff") -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def assign_category_to_task(task_id: int, category_id: int) -> dict:
     """タスクにカテゴリを割り当てる
     
@@ -525,7 +540,7 @@ def assign_category_to_task(task_id: int, category_id: int) -> dict:
 
 ### データバックアップ機能
 ```python
-@app.tool()
+@app.tool
 def backup_database(backup_path: str = None) -> dict:
     """データベースをバックアップする
     
@@ -557,7 +572,7 @@ def backup_database(backup_path: str = None) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def export_tasks_to_json(file_path: str = "tasks_export.json") -> dict:
     """タスクをJSONファイルにエクスポートする
     

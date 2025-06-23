@@ -1,3 +1,13 @@
+---
+title: "チュートリアル2: Hello World ツールを作ろう 🎯"
+version: "2.2"
+last_updated: "2025-06-23"
+author: "mcp starter"
+reviewers: []
+related_docs: ["01-basics.md", "03-data-handling.md"]
+status: "approved"
+---
+
 # チュートリアル2: Hello World ツールを作ろう 🎯
 
 **所要時間: 20分**  
@@ -7,7 +17,7 @@
 
 - 初めてのMCPツールを作成
 - FastMCPの基本的な使い方をマスター
-- STDIO/SSE両方でテスト実行
+- STDIO/HTTP/SSE全てでテスト実行
 
 ## 📝 ステップ1: 環境準備
 
@@ -22,9 +32,22 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
 ### FastMCPインストール
+
+**推奨方法（uvを使用）**:
+```bash
+# uvがインストール済みの場合
+uv add fastmcp
+
+# または
+uv pip install fastmcp
+```
+
+**従来の方法**:
 ```bash
 pip install fastmcp
 ```
+
+> 💡 **ヒント**: [uv](https://docs.astral.sh/uv/)はPythonパッケージ管理の最新ツールで、FastMCPでも推奨されています。
 
 ## 🏗️ ステップ2: Hello Worldサーバー作成
 
@@ -37,9 +60,9 @@ FastMCPを使ったHello Worldの例
 from fastmcp import FastMCP
 
 # MCPサーバーを作成
-app = FastMCP("Hello World Server")
+mcp = FastMCP("Hello World Server")
 
-@app.tool()
+@mcp.tool
 def say_hello(name: str) -> str:
     """指定された名前に挨拶する
     
@@ -51,7 +74,7 @@ def say_hello(name: str) -> str:
     """
     return f"こんにちは、{name}さん！FastMCPへようこそ 🎉"
 
-@app.tool()
+@mcp.tool
 def add_numbers(a: float, b: float) -> float:
     """2つの数値を足し算する
     
@@ -65,7 +88,7 @@ def add_numbers(a: float, b: float) -> float:
     result = a + b
     return result
 
-@app.tool()
+@mcp.tool
 def get_server_info() -> dict:
     """サーバーの情報を取得する
     
@@ -82,14 +105,18 @@ def get_server_info() -> dict:
 
 if __name__ == "__main__":
     # サーバーを起動
-    app.run()
+    mcp.run()
 ```
 
 ## 🚀 ステップ3: サーバー起動
 
-### STDIOモードで起動
+### STDIOモードで起動（デフォルト）
 ```bash
+# 直接実行
 python hello_world.py
+
+# または FastMCP CLI を使用
+fastmcp run hello_world.py
 ```
 
 起動すると以下のような表示が出ます：
@@ -99,9 +126,31 @@ Transport: stdio
 Waiting for messages...
 ```
 
-### SSEモードで起動
-別のターミナルで：
+### HTTPモードで起動
 ```bash
+# FastMCP CLIを使用
+fastmcp run hello_world.py --transport streamable-http --port 8000
+
+# または直接実行
+python hello_world.py --transport streamable-http --port 8000
+```
+
+起動すると：
+```
+Starting FastMCP server 'Hello World Server'
+Transport: streamable-http
+Server running on http://127.0.0.1:8000/mcp
+```
+
+### SSEモードで起動（非推奨・互換性のため）
+
+> ⚠️ **注意**: SSEトランスポートは非推奨です。新しいプロジェクトではHTTPモードを使用してください。
+
+```bash
+# FastMCP CLIを使用
+fastmcp run hello_world.py --transport sse --port 8000
+
+# または直接実行
 python hello_world.py --transport sse --port 8000
 ```
 
@@ -109,75 +158,140 @@ python hello_world.py --transport sse --port 8000
 ```
 Starting FastMCP server 'Hello World Server'
 Transport: sse
-Server running on http://localhost:8000
+Server running on http://127.0.0.1:8000/sse
 ```
 
 ## 🧪 ステップ4: テスト実行
 
-### STDIOモードでのテスト
+### 方法1: Pythonクライアントを使用したテスト（プログラム的）
 
-新しいターミナルを開いて：
+テスト用のPythonファイルを作成してサーバーをテストできます：
+
+#### ファイル作成: `test_client.py`
+```python
+"""
+Hello Worldサーバーをテストするクライアント
+"""
+import asyncio
+from fastmcp import Client
+
+async def test_hello_world_server():
+    # サーバーファイルを指定してクライアント作成
+    client = Client("hello_world.py")
+    
+    async with client:
+        print("🔗 サーバーに接続しました")
+        
+        # 利用可能なツール一覧を取得
+        tools = await client.list_tools()
+        print(f"📋 利用可能なツール: {[tool.name for tool in tools]}")
+        
+        # say_helloツールを実行
+        result1 = await client.call_tool("say_hello", {"name": "太郎"})
+        print(f"✅ say_hello結果: {result1[0].text}")
+        
+        # add_numbersツールを実行
+        result2 = await client.call_tool("add_numbers", {"a": 10, "b": 25})
+        print(f"🔢 add_numbers結果: {result2[0].text}")
+        
+        # get_server_infoツールを実行
+        result3 = await client.call_tool("get_server_info")
+        print(f"ℹ️  server_info結果: {result3[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(test_hello_world_server())
+```
+
+#### テスト実行:
 ```bash
-# ツール一覧を取得
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | python hello_world.py
+python test_client.py
 ```
 
 期待される出力：
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "tools": [
-      {
-        "name": "say_hello",
-        "description": "指定された名前に挨拶する",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "name": {"type": "string", "description": "挨拶する相手の名前"}
-          },
-          "required": ["name"]
-        }
-      },
-      // ... 他のツール
-    ]
-  }
-}
+```
+🔗 サーバーに接続しました
+📋 利用可能なツール: ['say_hello', 'add_numbers', 'get_server_info']
+✅ say_hello結果: こんにちは、太郎さん！FastMCPへようこそ 🎉
+🔢 add_numbers結果: 35.0
+ℹ️  server_info結果: {"server_name": "Hello World Server", "version": "1.0.0", ...}
 ```
 
-### ツール実行テスト
-```bash
-# say_helloツールを実行
-echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "say_hello", "arguments": {"name": "太郎"}}}' | python hello_world.py
+### 方法2: HTTPモー ドでのテスト
+
+HTTPモードの場合、FastMCPクライアントで簡単にテストできます：
+
+```python
+import asyncio
+from fastmcp import Client
+
+async def test_http_server():
+    # HTTPサーバーのURLを指定
+    client = Client("http://127.0.0.1:8000/mcp")
+    
+    async with client:
+        tools = await client.list_tools()
+        print(f"利用可能なツール: {[tool.name for tool in tools]}")
+        
+        result = await client.call_tool("say_hello", {"name": "HTTP太郎"})
+        print(f"結果: {result[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(test_http_server())
 ```
 
-期待される出力：
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "こんにちは、太郎さん！FastMCPへようこそ 🎉"
-      }
-    ]
-  }
-}
+### 方法3: SSEモードでのテスト（非推奨・互換性のため）
+
+> ⚠️ **注意**: SSEは非推奨のため、新しいプロジェクトではHTTPモードを使用してください。
+
+SSEモードの場合、専用のトランスポートを指定する必要があります：
+
+```python
+import asyncio
+from fastmcp import Client
+from fastmcp.client import SSETransport
+
+async def test_sse_server():
+    # SSEトランスポートを明示的に指定
+    transport = SSETransport(
+        url="http://127.0.0.1:8000/sse"
+    )
+    client = Client(transport)
+    
+    async with client:
+        tools = await client.list_tools()
+        print(f"利用可能なツール: {[tool.name for tool in tools]}")
+        
+        result = await client.call_tool("say_hello", {"name": "SSE太郎"})
+        print(f"結果: {result[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(test_sse_server())
 ```
 
-### SSEモードでのテスト
+または、URLで直接指定することも可能です（ただし推奨されません）：
 
-ブラウザで `http://localhost:8000` にアクセスすると、シンプルなテストUIが表示されます（FastMCPが提供）。
+```python
+import asyncio
+from fastmcp import Client
 
-## 📊 ステップ5: ツールを追加してみよう
+async def test_sse_simple():
+    # SSE URLを直接指定（非推奨）
+    client = Client("http://127.0.0.1:8000/sse")
+    
+    async with client:
+        result = await client.call_tool("say_hello", {"name": "SSE太郎"})
+        print(f"結果: {result[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(test_sse_simple())
+```
+
+## 📊 ステップ4: ツールを追加してみよう
 
 既存のファイルに新しいツールを追加：
 
 ```python
-@app.tool()
+@mcp.tool
 def calculate_age(birth_year: int) -> dict:
     """生年から年齢を計算する
     
@@ -199,7 +313,7 @@ def calculate_age(birth_year: int) -> dict:
         "message": f"{birth_year}年生まれの方は{age}歳です"
     }
 
-@app.tool()
+@mcp.tool
 def format_text(text: str, style: str = "upper") -> str:
     """テキストを様々な形式でフォーマットする
     
@@ -222,12 +336,12 @@ def format_text(text: str, style: str = "upper") -> str:
         return f"未対応のスタイル: {style}"
 ```
 
-## 🔧 ステップ6: エラーハンドリング
+## 🔧 ステップ5: エラーハンドリング
 
 実用的なツールにはエラーハンドリングが重要：
 
 ```python
-@app.tool()
+@mcp.tool
 def safe_divide(dividend: float, divisor: float) -> dict:
     """安全な除算を行う
     
@@ -236,7 +350,7 @@ def safe_divide(dividend: float, divisor: float) -> dict:
         divisor: 除数
         
     Returns:
-        計算結果または エラー情報
+        計算結果またはエラー情報
     """
     try:
         if divisor == 0:
@@ -262,7 +376,7 @@ def safe_divide(dividend: float, divisor: float) -> dict:
         }
 ```
 
-## 📁 ステップ7: 設定ファイルの活用
+## 📁 ステップ6: 設定ファイルの活用
 
 より高度な設定のため、設定ファイルを作成：
 
@@ -276,8 +390,8 @@ author = "あなたの名前"
 
 [transport]
 default = "stdio"
-sse_port = 8000
-sse_host = "localhost"
+http_port = 8000
+http_host = "127.0.0.1"
 
 [features]
 enable_logging = true
@@ -299,9 +413,8 @@ else:
     config = {}
 
 # 設定を使用してサーバー作成
-app = FastMCP(
-    name=config.get("server", {}).get("name", "Hello World Server"),
-    description=config.get("server", {}).get("description", "")
+mcp = FastMCP(
+    name=config.get("server", {}).get("name", "Hello World Server")
 )
 ```
 
@@ -310,9 +423,10 @@ app = FastMCP(
 以下を確認してください：
 
 - [ ] hello_world.pyが正常に起動する
-- [ ] STDIOモードでツール一覧が取得できる
-- [ ] ツールが正常に実行される
-- [ ] SSEモードでも動作する
+- [ ] `fastmcp dev hello_world.py`でテストUIが使える
+- [ ] Pythonクライアントでツールが実行できる
+- [ ] HTTPモードでも動作する
+- [ ] SSEモード（必要に応じて）でも動作する
 - [ ] エラーハンドリングが機能する
 
 ## 🎉 完成！
@@ -323,10 +437,13 @@ app = FastMCP(
 ```
 my-first-mcp/
 ├── hello_world.py      # メインサーバー
+├── test_client.py      # 詳細テスト用クライアント
 ├── config.toml         # 設定ファイル
 ├── venv/              # 仮想環境
 └── README.md          # プロジェクト説明
 ```
+
+> 💡 **参考**: このチュートリアルで説明した内容の実働可能な実装は `src/my-first-mcp/` ディレクトリにもあります。
 
 ## 🔧 トラブルシューティング
 
@@ -335,24 +452,51 @@ my-first-mcp/
 **1. モジュールが見つからない**
 ```bash
 # FastMCPが正しくインストールされているか確認
-pip list | grep fastmcp
+fastmcp version
 ```
 
 **2. ポートが使用中**
 ```bash
-# 別のポートを指定
-python hello_world.py --transport sse --port 8001
+# 別のポートを指定（HTTPの場合）
+fastmcp run hello_world.py --transport streamable-http --port 8001
+
+# SSEの場合
+fastmcp run hello_world.py --transport sse --port 8001
 ```
 
-**3. JSON形式エラー**
-- STDIOテストでは改行を含めない
-- ダブルクォートを使用する
+**3. クライアント接続エラー**
+- サーバーが起動していることを確認
+- HTTPモードの場合、正しいURLを使用
+
+### トランスポート選択のガイド
+
+| トランスポート | 推奨度 | 用途 | 特徴 |
+|---|---|---|---|
+| **STDIO** | ⭐⭐⭐ | ローカルツール、コマンドライン統合 | シンプル、直接実行 |
+| **HTTP (streamable-http)** | ⭐⭐⭐ | ウェブベースのデプロイメント | 最新、推奨方式 |
+| **SSE** | ⭐ | レガシーシステムとの互換性 | 非推奨、互換性のためのみ |
+
+**開発・テストのヒント:**
+- **初心者**: `fastmcp dev`コマンドが最も簡単
+- **プログラム的テスト**: Pythonクライアントを使用
+- **本番環境**: HTTPトランスポートを推奨
 
 ## 🔄 次のステップ
 
 基本的なツールが作れるようになったら、次はデータを扱ってみましょう！
 
 **[→ チュートリアル3: データ操作](03-data-handling.md)**
+
+---
+
+## 更新履歴
+
+| バージョン | 更新日 | 更新者 | 更新内容 | 影響ドキュメント |
+|---|-----|-----|----|---|
+| 1.0 | 2025-06-23 | mcp starter | 初版作成 | - |
+| 2.0 | 2025-06-23 | mcp starter | 公式ドキュメント準拠の修正、インストール方法とテスト方法の更新 | 01-basics.md, 03-data-handling.md |
+| 2.1 | 2025-06-23 | mcp starter | SSEトランスポートの情報を追加（非推奨として）、トランスポート選択ガイドを追加 | - |
+| 2.2 | 2025-06-23 | mcp starter | 実際の動作確認を実施してコード例を修正（FastMCPコンストラクタ、SSETransportインポート等） | - |
 
 ---
 

@@ -7,7 +7,7 @@ from fastmcp import FastMCP
 # MCPサーバーを作成
 app = FastMCP("Hello World Server")
 
-@app.tool()
+@app.tool
 def say_hello(name: str) -> str:
     """指定された名前に挨拶する
     
@@ -19,7 +19,7 @@ def say_hello(name: str) -> str:
     """
     return f"こんにちは、{name}さん！FastMCPへようこそ 🎉"
 
-@app.tool()
+@app.tool
 def add_numbers(a: float, b: float) -> float:
     """2つの数値を足し算する
     
@@ -33,7 +33,7 @@ def add_numbers(a: float, b: float) -> float:
     result = a + b
     return result
 
-@app.tool()
+@app.tool
 def get_server_info() -> dict:
     """サーバーの情報を取得する
     

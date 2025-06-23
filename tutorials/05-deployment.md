@@ -275,7 +275,7 @@ from datetime import datetime
 
 app = FastMCP("Health Monitor")
 
-@app.tool()
+@app.tool
 def health_check() -> dict:
     """システムヘルスチェック"""
     try:

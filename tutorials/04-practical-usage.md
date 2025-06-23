@@ -373,7 +373,7 @@ from typing import Dict, List
 
 app = FastMCP("Smart Information Analyzer")
 
-@app.tool()
+@app.tool
 def scrape_and_analyze(url: str) -> Dict:
     """URLを取得して分析する（統合処理）
     
@@ -441,7 +441,7 @@ def scrape_and_analyze(url: str) -> Dict:
             "stage": "processing"
         }
 
-@app.tool()
+@app.tool
 def batch_analyze_urls(urls: List[str]) -> Dict:
     """複数URLを一括分析
     
@@ -479,7 +479,7 @@ def batch_analyze_urls(urls: List[str]) -> Dict:
         "results": results
     }
 
-@app.tool()
+@app.tool
 def get_analysis_history(limit: int = 10) -> Dict:
     """分析履歴を取得
     
@@ -515,7 +515,7 @@ def get_analysis_history(limit: int = 10) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def search_by_sentiment(sentiment_label: str) -> Dict:
     """感情ラベルで検索
     
@@ -552,7 +552,7 @@ def search_by_sentiment(sentiment_label: str) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def get_keyword_analysis(min_frequency: float = 0.01) -> Dict:
     """キーワード分析
     
@@ -593,7 +593,7 @@ def get_keyword_analysis(min_frequency: float = 0.01) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def generate_summary_report() -> Dict:
     """サマリーレポート生成
     
@@ -664,11 +664,23 @@ if __name__ == "__main__":
 ## 🧪 ステップ6: テスト実行
 
 ### 基本テスト
+
+#### 推奨方法: FastMCP CLIを使用
+```bash
+# 簡単なテスト環境
+fastmcp dev main.py
+
+# SSEモードでWeb UIを使用
+fastmcp run main.py --transport sse --port 8000
+# ブラウザで http://localhost:8000 にアクセス
+```
+
+#### 手動テスト（MCP初期化が必要）
 ```bash
 # サーバー起動
 python main.py
 
-# 単一URL分析
+# 単一URL分析（初期化後）
 echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "scrape_and_analyze", "arguments": {"url": "https://example.com"}}}' | python main.py
 
 # 分析履歴取得
@@ -677,6 +689,8 @@ echo '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "ge
 # サマリーレポート生成
 echo '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "generate_summary_report", "arguments": {}}}' | python main.py
 ```
+
+> **重要**: 手動テストはMCPプロトコルの初期化が必要で複雑です。**SSEモードまたはFastMCP CLIの使用を強く推奨します。**
 
 ## 📊 ステップ7: 設定ファイルの活用
 
@@ -729,7 +743,7 @@ formats = ["json", "html"]
 
 ### 実装例（RSS分析）
 ```python
-@app.tool()
+@app.tool
 def analyze_rss_feed(rss_url: str, max_items: int = 10) -> Dict:
     """RSSフィードを分析"""
     import feedparser

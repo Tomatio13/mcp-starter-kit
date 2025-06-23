@@ -79,7 +79,7 @@ from fastmcp import FastMCP
 
 app = FastMCP("Hello World")
 
-@app.tool()
+@app.tool
 def say_hello(name: str) -> str:
     """Say hello to someone"""
     return f"Hello, {name}!"
@@ -116,12 +116,12 @@ from fastmcp import FastMCP
 
 app = FastMCP("My First MCP")
 
-@app.tool()
+@app.tool
 def greet(name: str) -> str:
     """挨拶をする"""
     return f"こんにちは、{name}さん！"
 
-@app.tool()
+@app.tool
 def add_numbers(a: int, b: int) -> int:
     """2つの数を足し算する"""
     return a + b
@@ -151,7 +151,7 @@ SSEモードではブラウザで `http://localhost:8000` にアクセス
 
 ### 基本的なツール
 ```python
-@app.tool()
+@app.tool
 def simple_tool(param: str) -> str:
     """ツールの説明"""
     return f"処理結果: {param}"
@@ -159,7 +159,7 @@ def simple_tool(param: str) -> str:
 
 ### 複数パラメータ
 ```python
-@app.tool()
+@app.tool
 def complex_tool(name: str, age: int, active: bool = True) -> dict:
     """複雑なツールの例"""
     return {
@@ -171,7 +171,7 @@ def complex_tool(name: str, age: int, active: bool = True) -> dict:
 
 ### エラーハンドリング
 ```python
-@app.tool()
+@app.tool
 def safe_divide(a: float, b: float) -> float:
     """安全な除算"""
     if b == 0:
@@ -184,7 +184,7 @@ def safe_divide(a: float, b: float) -> float:
 | 概念 | 説明 | 例 |
 |------|------|-----|
 | **MCPサーバー** | ツールを提供するプログラム | `FastMCP("サーバー名")` |
-| **ツール** | AI助手が使える機能 | `@app.tool()` |
+| **ツール** | AI助手が使える機能 | `@app.tool` |
 | **Transport** | 通信方式 | STDIO / SSE |
 | **パラメータ** | ツールの入力 | `name: str` |
 | **戻り値** | ツールの出力 | `return "結果"` |
@@ -196,7 +196,7 @@ def safe_divide(a: float, b: float) -> float:
 1. MCPの目的は何ですか？
 2. FastMCPの利点を3つ挙げてください
 3. STDIOとSSEの違いは何ですか？
-4. `@app.tool()` デコレータの役割は？
+4. `@app.tool` デコレータの役割は？
 
 <details>
 <summary>解答例</summary>

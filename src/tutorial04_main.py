@@ -230,7 +230,7 @@ analyzer = TextAnalyzer()
 
 app = FastMCP("Smart Information Analyzer")
 
-@app.tool()
+@app.tool
 def scrape_and_analyze(url: str) -> Dict:
     """URLを取得して分析する（統合処理）
     
@@ -298,7 +298,7 @@ def scrape_and_analyze(url: str) -> Dict:
             "stage": "processing"
         }
 
-@app.tool()
+@app.tool
 def batch_analyze_urls(urls: List[str]) -> Dict:
     """複数URLを一括分析
     
@@ -336,7 +336,7 @@ def batch_analyze_urls(urls: List[str]) -> Dict:
         "results": results
     }
 
-@app.tool()
+@app.tool
 def get_analysis_history(limit: int = 10) -> Dict:
     """分析履歴を取得
     
@@ -372,7 +372,7 @@ def get_analysis_history(limit: int = 10) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def search_by_sentiment(sentiment_label: str) -> Dict:
     """感情ラベルで検索
     
@@ -409,7 +409,7 @@ def search_by_sentiment(sentiment_label: str) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def get_keyword_analysis(min_frequency: float = 0.01) -> Dict:
     """キーワード分析
     
@@ -449,7 +449,7 @@ def get_keyword_analysis(min_frequency: float = 0.01) -> Dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def generate_summary_report() -> Dict:
     """サマリーレポート生成
     

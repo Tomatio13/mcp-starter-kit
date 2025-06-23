@@ -65,7 +65,7 @@ db = TaskDatabase()
 
 app = FastMCP("Task Manager")
 
-@app.tool()
+@app.tool
 def create_task(title: str, description: str = "", priority: int = 1) -> dict:
     """新しいタスクを作成する
     
@@ -104,7 +104,7 @@ def create_task(title: str, description: str = "", priority: int = 1) -> dict:
             "message": "タスクの作成に失敗しました"
         }
 
-@app.tool()
+@app.tool
 def get_tasks(status: str = "all", limit: int = 10) -> dict:
     """タスク一覧を取得する
     
@@ -149,7 +149,7 @@ def get_tasks(status: str = "all", limit: int = 10) -> dict:
             "tasks": []
         }
 
-@app.tool()
+@app.tool
 def update_task_status(task_id: int, status: str) -> dict:
     """タスクのステータスを更新する
     
@@ -203,7 +203,7 @@ def update_task_status(task_id: int, status: str) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def delete_task(task_id: int) -> dict:
     """タスクを削除する
     
@@ -242,7 +242,7 @@ def delete_task(task_id: int) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def search_tasks(keyword: str) -> dict:
     """タスクを検索する
     
@@ -279,7 +279,7 @@ def search_tasks(keyword: str) -> dict:
             "tasks": []
         }
 
-@app.tool()
+@app.tool
 def get_task_statistics() -> dict:
     """タスクの統計情報を取得する
     
@@ -326,7 +326,7 @@ def get_task_statistics() -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def create_category(name: str, color: str = "#007bff") -> dict:
     """新しいカテゴリを作成する
     
@@ -366,7 +366,7 @@ def create_category(name: str, color: str = "#007bff") -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def assign_category_to_task(task_id: int, category_id: int) -> dict:
     """タスクにカテゴリを割り当てる
     
@@ -409,7 +409,7 @@ def assign_category_to_task(task_id: int, category_id: int) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def backup_database(backup_path: str = None) -> dict:
     """データベースをバックアップする
     
@@ -441,7 +441,7 @@ def backup_database(backup_path: str = None) -> dict:
             "error": str(e)
         }
 
-@app.tool()
+@app.tool
 def export_tasks_to_json(file_path: str = "tasks_export.json") -> dict:
     """タスクをJSONファイルにエクスポートする
     
