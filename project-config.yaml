@@ -1,0 +1,18 @@
+# プロジェクト設定ファイル
+# Project Configuration File
+
+project:
+  name: "mcp starter"
+  created_date: "2025-06-23"
+
+user:
+  name: "mcp starter"
+
+settings:
+  default_language: "ja"
+  timezone: "Asia/Tokyo"
+  document_format: "markdown"
+
+# メタデータテンプレート用設定
+metadata_defaults:
+  author: "${user.name}"
