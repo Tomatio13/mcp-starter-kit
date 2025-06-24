@@ -1,15 +1,28 @@
 """
 FastMCPを使用したタスク管理MCPサーバー
 """
+import tomllib
+from pathlib import Path
 from fastmcp import FastMCP
 import sqlite3
 from typing import List, Dict, Optional
 import json
-import time
+import shutil
+from datetime import datetime
 
-# データベース部分をインライン化（tutorial03_database.pyの内容）
+# 設定読み込み
+config_path = Path("config.toml")
+if config_path.exists():
+    with open(config_path, "rb") as f:
+        config = tomllib.load(f)
+else:
+    config = {}
+
+# データベース管理クラス
 class TaskDatabase:
-    def __init__(self, db_path: str = "tasks.db"):
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            db_path = config.get("database", {}).get("path", "tasks.db")
         self.db_path = db_path
         self.init_database()
     
@@ -17,6 +30,9 @@ class TaskDatabase:
         """データベースとテーブルを初期化"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+            
+            # 外部キー制約を有効化
+            cursor.execute("PRAGMA foreign_keys = ON")
             
             # tasksテーブル作成
             cursor.execute("""
@@ -47,8 +63,8 @@ class TaskDatabase:
                     task_id INTEGER,
                     category_id INTEGER,
                     PRIMARY KEY (task_id, category_id),
-                    FOREIGN KEY (task_id) REFERENCES tasks(id),
-                    FOREIGN KEY (category_id) REFERENCES categories(id)
+                    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+                    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
                 )
             """)
             
@@ -58,14 +74,18 @@ class TaskDatabase:
         """データベース接続を取得"""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row  # 辞書形式でアクセス可能
+        conn.execute("PRAGMA foreign_keys = ON")  # 外部キー制約を有効化
         return conn
 
 # グローバルデータベースインスタンス
 db = TaskDatabase()
 
-app = FastMCP("Task Manager")
+# 設定を使用してサーバー作成
+mcp = FastMCP(
+    name=config.get("server", {}).get("name", "Task Manager")
+)
 
-@app.tool
+@mcp.tool
 def create_task(title: str, description: str = "", priority: int = 1) -> dict:
     """新しいタスクを作成する
     
@@ -104,7 +124,7 @@ def create_task(title: str, description: str = "", priority: int = 1) -> dict:
             "message": "タスクの作成に失敗しました"
         }
 
-@app.tool
+@mcp.tool
 def get_tasks(status: str = "all", limit: int = 10) -> dict:
     """タスク一覧を取得する
     
@@ -149,7 +169,7 @@ def get_tasks(status: str = "all", limit: int = 10) -> dict:
             "tasks": []
         }
 
-@app.tool
+@mcp.tool
 def update_task_status(task_id: int, status: str) -> dict:
     """タスクのステータスを更新する
     
@@ -203,7 +223,7 @@ def update_task_status(task_id: int, status: str) -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def delete_task(task_id: int) -> dict:
     """タスクを削除する
     
@@ -227,7 +247,7 @@ def delete_task(task_id: int) -> dict:
                     "error": f"ID {task_id} のタスクが見つかりません"
                 }
             
-            # タスク削除
+            # 関連カテゴリも自動削除（ON DELETE CASCADE）
             cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
             
             return {
@@ -242,7 +262,7 @@ def delete_task(task_id: int) -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def search_tasks(keyword: str) -> dict:
     """タスクを検索する
     
@@ -279,7 +299,7 @@ def search_tasks(keyword: str) -> dict:
             "tasks": []
         }
 
-@app.tool
+@mcp.tool
 def get_task_statistics() -> dict:
     """タスクの統計情報を取得する
     
@@ -326,7 +346,7 @@ def get_task_statistics() -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def create_category(name: str, color: str = "#007bff") -> dict:
     """新しいカテゴリを作成する
     
@@ -366,7 +386,7 @@ def create_category(name: str, color: str = "#007bff") -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def assign_category_to_task(task_id: int, category_id: int) -> dict:
     """タスクにカテゴリを割り当てる
     
@@ -409,7 +429,7 @@ def assign_category_to_task(task_id: int, category_id: int) -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def backup_database(backup_path: str = None) -> dict:
     """データベースをバックアップする
     
@@ -420,9 +440,6 @@ def backup_database(backup_path: str = None) -> dict:
         バックアップ結果
     """
     try:
-        from datetime import datetime
-        import shutil
-        
         if backup_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = f"backup_tasks_{timestamp}.db"
@@ -441,7 +458,7 @@ def backup_database(backup_path: str = None) -> dict:
             "error": str(e)
         }
 
-@app.tool
+@mcp.tool
 def export_tasks_to_json(file_path: str = "tasks_export.json") -> dict:
     """タスクをJSONファイルにエクスポートする
     
@@ -452,18 +469,24 @@ def export_tasks_to_json(file_path: str = "tasks_export.json") -> dict:
         エクスポート結果
     """
     try:
-        tasks_result = get_tasks(limit=1000)
-        
-        if not tasks_result["success"]:
-            return tasks_result
+        # データベースから直接全タスクを取得
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM tasks 
+                ORDER BY priority DESC, created_at DESC 
+                LIMIT 1000
+            """)
+            
+            tasks = [dict(row) for row in cursor.fetchall()]
         
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(tasks_result["tasks"], f, ensure_ascii=False, indent=2)
+            json.dump(tasks, f, ensure_ascii=False, indent=2)
         
         return {
             "success": True,
             "message": f"タスクを {file_path} にエクスポートしました",
-            "exported_count": len(tasks_result["tasks"]),
+            "exported_count": len(tasks),
             "file_path": file_path
         }
     
@@ -473,5 +496,64 @@ def export_tasks_to_json(file_path: str = "tasks_export.json") -> dict:
             "error": str(e)
         }
 
+@mcp.tool
+def get_categories() -> dict:
+    """カテゴリ一覧を取得する
+    
+    Returns:
+        カテゴリ一覧
+    """
+    try:
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM categories ORDER BY name")
+            categories = [dict(row) for row in cursor.fetchall()]
+            
+            return {
+                "success": True,
+                "categories": categories,
+                "count": len(categories)
+            }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "categories": []
+        }
+
+@mcp.tool
+def get_server_info() -> dict:
+    """サーバーの情報を取得する
+    
+    Returns:
+        サーバー情報の辞書
+    """
+    server_config = config.get("server", {})
+    db_config = config.get("database", {})
+    
+    return {
+        "server_name": server_config.get("name", "Task Manager"),
+        "version": server_config.get("version", "1.0.0"),
+        "description": server_config.get("description", "SQLiteを使用したタスク管理MCPサーバー"),
+        "author": server_config.get("author", "あなたの名前"),
+        "database_path": db.db_path,
+        "tools_count": 12  # 現在のツール数
+    }
+
 if __name__ == "__main__":
-    app.run() 
+    # 設定からデフォルトトランスポートを取得
+    transport_config = config.get("transport", {})
+    default_transport = transport_config.get("default", "stdio")
+    
+    # サーバーを起動
+    if default_transport == "stdio":
+        mcp.run()
+    elif default_transport == "http":
+        mcp.run(
+            transport="streamable-http",
+            host=transport_config.get("http_host", "127.0.0.1"),
+            port=transport_config.get("http_port", 8000)
+        )
+    else:
+        mcp.run() 

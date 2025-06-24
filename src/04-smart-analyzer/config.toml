@@ -1,0 +1,35 @@
+[server]
+name = "Smart Information Analyzer"
+version = "1.0.0"
+description = "Web情報収集と分析を行うMCPサーバー"
+author = "mcp starter"
+
+[transport]
+default = "stdio"
+http_port = 8000
+http_host = "127.0.0.1"
+
+[scraping]
+timeout = 10
+user_agent = "SmartAnalyzer/1.0"
+rate_limit = 1.0  # seconds between requests
+max_content_length = 10000
+
+[analysis]
+enable_sentiment = true
+enable_keywords = true
+max_keywords = 20
+min_keyword_frequency = 0.01
+
+[database]
+path = "data/analysis.db"
+backup_interval = 86400  # seconds (daily)
+
+[reports]
+output_dir = "data/reports"
+formats = ["json", "html"]
+
+[features]
+enable_logging = true
+log_level = "INFO"
+enable_metrics = false 
