@@ -1,0 +1,16 @@
+{
+  "server": {
+    "name": "Smart Information Analyzer - TypeScript",
+    "version": "1.0.0",
+    "description": "スマート情報収集&分析システム - TypeScript版",
+    "author": "あなたの名前"
+  },
+  "database": {
+    "path": "data/analysis.db"
+  },
+  "transport": {
+    "default": "stdio",
+    "http_host": "127.0.0.1",
+    "http_port": 8000
+  }
+}

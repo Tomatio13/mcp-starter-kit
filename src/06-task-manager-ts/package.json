@@ -1,0 +1,29 @@
+{
+  "name": "task-manager-mcp-server",
+  "version": "1.0.0",
+  "description": "FastMCPを使用したタスク管理MCPサーバー - TypeScript版",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx server.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": ["mcp", "server", "fastmcp", "typescript", "task-manager", "sqlite"],
+  "author": "あなたの名前",
+  "license": "MIT",
+  "dependencies": {
+    "fastmcp": "^1.0.0",
+    "zod": "^3.22.0",
+    "sqlite3": "^5.1.0",
+    "sqlite": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/sqlite3": "^3.1.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "rimraf": "^5.0.0"
+  }
+}
