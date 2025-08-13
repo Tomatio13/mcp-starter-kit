@@ -4,17 +4,7 @@ version = "1.0.0"
 description = "SQLiteを使用したタスク管理MCPサーバー"
 author = "mcp starter"
 
-[transport]
-default = "stdio"
-http_port = 8000
-http_host = "127.0.0.1"
-
 [database]
 path = "tasks.db"
 backup_enabled = true
 auto_migrate = true
-
-[features]
-enable_logging = true
-log_level = "INFO"
-enable_metrics = false 

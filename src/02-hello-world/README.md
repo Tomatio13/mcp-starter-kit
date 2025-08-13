@@ -55,7 +55,7 @@ fastmcp run hello_world.py --transport streamable-http --port 8000
 
 #### SSEモード（非推奨）
 ```bash
-fastmcp run hello_world.py --transport sse --port 8000
+fastmcp run hello_world.py --transport sse --port 8000 --host 0.0.0.0
 ```
 
 ### 3. テスト実行
@@ -90,16 +90,6 @@ name = "Hello World Server"
 version = "1.0.0"
 description = "初学者向けのMCPサーバーサンプル"
 author = "あなたの名前"
-
-[transport]
-default = "stdio"
-http_port = 8000
-http_host = "127.0.0.1"
-
-[features]
-enable_logging = true
-log_level = "INFO"
-enable_metrics = false
 ```
 
 ## 🧪 テスト例

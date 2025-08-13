@@ -1,4 +1,4 @@
-# Hackthon Document MCP Server
+# hackathon Document MCP Server
 
 ## 概要
 MCPハッカソンのドキュメントサーバーです。FastMCPを使用して、ハッカソン参加者に必要な各種ドキュメントとユーティリティ機能を提供します。
@@ -48,7 +48,7 @@ FastMCPを使用したMCPサーバーを構築し、ハッカソン関連のド�
 
 ```
 08-document-server/
-├── hackthon_document_server.py  # メインサーバー
+├── hackathon_document_server.py  # メインサーバー
 ├── config.toml                  # 設定ファイル
 ├── context/                     # ドキュメント格納ディレクトリ
 │   ├── MCPハッカソン参加者ガイド.md
@@ -68,12 +68,7 @@ FastMCPを使用したMCPサーバーを構築し、ハッカソン関連のド�
 
 ## 🔧 セットアップ手順
 
-### 1. リポジトリの準備
-```bash
-cd /tmp/08-document-server
-```
-
-### 2. 仮想環境の設定
+### 1. 仮想環境の設定
 ```bash
 # 仮想環境作成（推奨）
 python -m venv venv
@@ -83,47 +78,37 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. 依存関係のインストール
+### 2. 依存関係のインストール
 ```bash
 # FastMCPインストール
 pip install fastmcp
-# または
-uv add fastmcp  # uvを使用している場合
 ```
 
 ### 4. 設定確認
 `config.toml`ファイルで以下の設定を確認：
 ```toml
 [server]
-name = "Hackthon Document Mcp Server"
+name = "hackathon Document Mcp Server"
 version = "1.0.0"
 description = "MCPハッカソンのドキュメントサーバ"
 author = "Masato Asai"
-
-[transport]
-default = "stdio"
-http_port = 8000
-http_host = "127.0.0.1"
 ```
 
 ### 5. サーバーの起動
 
 #### STDIOモード（デフォルト）
 ```bash
-# 直接実行
-python hackthon_document_server.py
-
-# FastMCPコマンド使用
-fastmcp run hackthon_document_server.py
+fastmcp run hackathon_document_server.py
 ```
 
 #### HTTPモード
 ```bash
-# config.tomlのdefaultを"http"に変更してから実行
-python hackthon_document_server.py
+fastmcp run hackathon_document_server.py --transport streamable-http --port 8000
+```
 
-# または、コマンドラインオプションで指定
-fastmcp run hackthon_document_server.py --transport streamable-http --port 8000
+#### SSEモード
+```bash
+fastmcp run hackathon_document_server.py --transport sse --host 0.0.0.0 --port 8000
 ```
 
 ## 📖 使用方法
@@ -131,7 +116,6 @@ fastmcp run hackthon_document_server.py --transport streamable-http --port 8000
 ### 基本的な使い方
 1. **サーバー情報取得** - `get_server_info()` でサーバーの基本情報を取得
 2. **ドキュメント取得** - 各種ドキュメント取得ツールを使用
-3. **ユーティリティ機能** - 年齢計算やテキストフォーマット機能を利用
 
 ### 利用可能なツール
 
@@ -142,16 +126,13 @@ fastmcp run hackthon_document_server.py --transport streamable-http --port 8000
 - `get_readme_template()` - READMEテンプレート
 
 #### ユーティリティツール
-- `calculate_age(birth_year: int)` - 生年から年齢を計算
-- `format_text(text: str, style: str)` - テキストフォーマット（upper/lower/title/reverse）
-- `safe_divide(dividend: float, divisor: float)` - 安全な除算処理
 - `get_server_info()` - サーバー情報取得
 
 ### テスト実行
 
 #### 方法1: FastMCP Dev Command（最も簡単）
 ```bash
-fastmcp dev hackthon_document_server.py
+fastmcp dev hackathon_document_server.py
 ```
 
 #### 方法2: クライアントテストスクリプト（作成した場合）
@@ -165,18 +146,6 @@ python test_client.py
 ```python
 result = await client.call_tool("get_participant_guide")
 # 結果: MCPハッカソン参加者ガイドのMarkdown内容
-```
-
-#### calculate_ageツール
-```python
-result = await client.call_tool("calculate_age", {"birth_year": 1990})
-# 結果: {"age": 35, "message": "1990年生まれの方は35歳です"}
-```
-
-#### safe_divideツール
-```python
-result = await client.call_tool("safe_divide", {"dividend": 10, "divisor": 3})
-# 結果: {"success": True, "result": 3.3333..., "calculation": "10 ÷ 3 = 3.3333..."}
 ```
 
 ## 🔍 トラブルシューティング
@@ -193,7 +162,7 @@ fastmcp version
 
 # 再インストール
 pip install fastmcp
-python hackthon_document_server.py
+python hackathon_document_server.py
 ```
 
 #### 問題2：ドキュメントが読み込めない
@@ -208,7 +177,7 @@ python hackthon_document_server.py
 **解決方法：**
 ```bash
 # 別のポートを使用
-fastmcp run hackthon_document_server.py --transport streamable-http --port 8001
+fastmcp run hackathon_document_server.py --transport streamable-http --port 8001
 ```
 
 #### 問題4：設定ファイルエラー

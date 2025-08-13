@@ -53,6 +53,11 @@ fastmcp run main.py
 fastmcp run main.py --transport streamable-http --port 8000
 ```
 
+#### SSEモード
+```bash
+fastmcp run main.py --transport sse --port 8000 --host 0.0.0.0
+```
+
 #### 開発モード（最も簡単）
 ```bash
 fastmcp dev main.py
